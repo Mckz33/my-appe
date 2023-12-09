@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,19 +8,58 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 
+const OrderModel = {
+  location: "",
+  time: "",
+  date: "",
+  materials: [],
+  total: 0,
+  payment: "",
+};
+
+const BackendService = {
+  getOrderData: async () => {
+    try {
+      const response = await fetch("http://localhost:3000/teste", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Network request failed");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }
+  },
+};
+
+
 export default function App() {
   const [isMenuOpen, setMenuOpen] = useState(false);
-  const [orders, setOrders] = useState([]);
+  const [orderData, setOrderData] = useState(OrderModel);
 
   const toggleMenu = () => {
     setMenuOpen(!isMenuOpen);
   };
 
   const addToOrder = (item) => {
-    setOrders([...orders, item]);
+    const updatedOrder = { ...orderData, materials: [...orderData.materials, item] };
+    setOrderData(updatedOrder);
   };
 
-  // Função para renderizar um item com rótulo e valor
+  useEffect(() => {
+    BackendService.getOrderData().then((data) => setOrderData(data));
+  }, []);
+
   const renderInfoItem = (label, value) => (
     <View style={styles.infoItem}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -30,45 +69,26 @@ export default function App() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.menu}>
-        <TouchableOpacity onPress={toggleMenu}>
-          <Icon name={isMenuOpen ? "times" : "bars"} size={30} color="#fff" />
-        </TouchableOpacity>
+      {/* ... (código existente) */}
 
-        {isMenuOpen && (
-          <View>
-            <TouchableOpacity onPress={() => alert("Menu Item 1")}>
-              <Text style={styles.menuItem}>Item 1</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => alert("Menu Item 2")}>
-              <Text style={styles.menuItem}>Item 2</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => alert("Menu Item 3")}>
-              <Text style={styles.menuItem}>Item 3</Text>
-            </TouchableOpacity>
+      <ScrollView style={styles.infoSection}>
+        {renderInfoItem("Local", orderData.location)}
+        {renderInfoItem("Horário", orderData.time)}
+        {renderInfoItem("Data", orderData.date)}
+      </ScrollView>
+
+      <ScrollView style={styles.infoSection}>
+        {orderData.materials.map((material, index) => (
+          <View key={index}>
+            {renderInfoItem("Material", material.name)}
+            {renderInfoItem("", `Quantidade: ${material.quantity}`)}
           </View>
-        )}
-      </View>
-
-      <ScrollView
-        style={[styles.titleSection, styles.greenBackground, styles.buttonSize]}
-      >
-        <Text style={styles.heading}>Resumo do Pedido</Text>
+        ))}
       </ScrollView>
+      <Text style={styles.totalText}>{`Total R$ ${orderData.total}`}</Text>
 
       <ScrollView style={styles.infoSection}>
-        {renderInfoItem("Local", "Nome do Local")}
-        {renderInfoItem("Horário", "14:00")}
-        {renderInfoItem("Data", "01/12/2023")}
-      </ScrollView>
-
-      <ScrollView style={styles.infoSection}>
-        {renderInfoItem("Material ", " Vidro 4k")}
-        {renderInfoItem("", " Plástico 8kg")}
-      </ScrollView>
-      <Text style={styles.totalText}>Total R$ 8,00</Text>
-      <ScrollView style={styles.infoSection}>
-        {renderInfoItem("Pagamento Final", "5678")}
+        {renderInfoItem("Pagamento Final", orderData.payment)}
       </ScrollView>
 
       <TouchableOpacity

@@ -1,0 +1,15 @@
+{
+  "teste": {
+    "location": {
+      "name": "Nome do Local"
+    },
+    "time": "14:00",
+    "date": "01/12/2023",
+    "materials": [
+      { "name": "Vidro", "quantity": "4k" },
+      { "name": "Plástico", "quantity": "8kg" }
+    ],
+    "total": 8.0,
+    "payment": "5678"
+  }
+}
